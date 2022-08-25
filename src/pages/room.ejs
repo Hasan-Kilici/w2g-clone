@@ -1,0 +1,83 @@
+<head>
+<title>W2G Clone</title>
+<link href="https://pro.fontawesome.com/releases/v5.13.1/css/all.css" rel="stylesheet"> 
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js" integrity="sha384-7+zCNj/IqJ95wo16oMtfsKbZ9ccEh31eOz1HGyDuCQ6wgnyJNSYdrPa03rtR1zdB" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js" integrity="sha384-QJHtvGhmr9XOIpI6YVutG+2QOK9T+ZnN4kzFN1RtK3zEFEIsxhlmWl5/YESvpZ13" crossorigin="anonymous"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<script src="/socket.io/socket.io.js"></script>
+</head>
+  <body>
+<div class="container" style="padding-top:2vh;">
+<div class="row">
+<div class="col-lg-6">
+  <h4><%= room.roomname %></h4>
+<hr>
+<iframe id="iframe" width="88%" height="315" src="https://www.youtube.com/embed/K6BRna4_bmg" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+<form id="form-video" action="">
+<input placeholder="Video linki girin" class="form-control w-75" style="float:left; margin-right:1vw;margin-top:2vh" id="input-video" autocomplete="off" /> <button class="btn btn-dark" style="width:10%;margin-top:2vh;">Send</button>
+</form>
+<% if(room.roomAdminToken == user.token) { %>
+<form method="POST" action="/delete/room/<%= room._id %>">
+<div class="col-12">
+</div>
+<input type="submit" class="btn btn-danger w-75" value="Odayı sil">
+</form>
+<% } %>
+</div>
+<div class="col-lg-6">
+<h4>Chat</h4>
+<ul id="messages"></ul>
+    <form id="form" action="">
+      <input class="form-control w-75" style="float:left; margin-right:1vw;margin-top:2vh" id="input" autocomplete="off" /><button class="btn btn-dark" style="width:10%;margin-top:2vh;">Send</button>
+    </form>
+</div>
+</div>
+
+</div>
+</body>
+
+<script>
+let socket = io();
+
+window.onload = ()=>{
+  socket.emit('join', "<%= roomId %>", "<%= user.username %>")
+}  
+
+//Chat
+  var messages = document.getElementById('messages');
+  var form = document.getElementById('form');
+  var input = document.getElementById('input');
+//Video
+  var iframe = document.getElementById('iframe');
+  var videoForm = document.getElementById('form-video');
+  var videoInput = document.getElementById('input-video')
+  
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    if (input.value) {
+      socket.emit('send', input.value);
+      input.value = '';
+    }
+  });
+
+  socket.on('recieve', function(msg) {
+    var item = document.createElement('li');
+    item.textContent = msg;
+    messages.appendChild(item);
+    window.scrollTo(0, document.body.scrollHeight);
+  });
+  
+  videoForm.addEventListener('submit', function(e){
+    e.preventDefault();
+    if (videoInput) {
+      socket.emit('change video', videoInput.value);
+      videoInput.value = '';
+    }
+  })
+  
+  socket.on('new video', function(data){
+    console.log("video açıldı")
+    iframe.src = data;
+  })
+</script>
